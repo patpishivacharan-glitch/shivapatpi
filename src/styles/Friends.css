@@ -225,14 +225,19 @@
   .friends-grid {
     grid-template-columns: 1fr;
     gap: 1.5rem;
+    padding: 0 1rem;
+  }
+  
+  .friends-hero {
+    padding: 0 1rem;
   }
   
   .friends-hero h1 {
-    font-size: 2.5rem;
+    font-size: 2.25rem;
   }
   
   .friend-card {
-    margin: 0 1rem;
+    margin: 0;
   }
   
   .connect-invitation {
@@ -242,8 +247,13 @@
 }
 
 @media (max-width: 480px) {
+  .friends-page {
+    padding: 2rem 0;
+  }
+  
   .friends-grid {
     grid-template-columns: 1fr;
+    padding: 0 0.5rem;
   }
   
   .friend-content {
@@ -251,11 +261,32 @@
   }
   
   .friends-hero h1 {
-    font-size: 2rem;
+    font-size: 1.875rem;
+  }
+  
+  .friends-hero .lead {
+    font-size: 1rem;
+  }
+  
+  .friend-image {
+    width: 100px;
+    height: 100px;
   }
   
   .friend-social {
     flex-direction: column;
     align-items: center;
+    gap: 0.5rem;
+  }
+  
+  .social-link {
+    width: 100%;
+    max-width: 150px;
+    justify-content: center;
+  }
+  
+  .connect-invitation {
+    padding: 1.5rem;
+    margin: 0 0.5rem;
   }
 }

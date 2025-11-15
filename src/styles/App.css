@@ -9,6 +9,13 @@
   padding-top: 80px; /* Account for fixed header */
 }
 
+/* Mobile adjustments */
+@media (max-width: 480px) {
+  .main-content {
+    padding-top: 70px; /* Smaller header height on mobile */
+  }
+}
+
 /* Loading and Error States */
 .loading {
   display: flex;
