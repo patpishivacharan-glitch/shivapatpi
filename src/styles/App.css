@@ -1,0 +1,82 @@
+.App {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.main-content {
+  flex: 1;
+  padding-top: 80px; /* Account for fixed header */
+}
+
+/* Loading and Error States */
+.loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 50vh;
+  font-size: 1.25rem;
+  color: var(--gray-600);
+}
+
+.error {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 50vh;
+  flex-direction: column;
+  color: var(--red-600);
+}
+
+/* Scroll to Top Button */
+.scroll-to-top {
+  position: fixed;
+  bottom: 2rem;
+  right: 2rem;
+  background: var(--primary-color);
+  color: var(--white);
+  border: none;
+  border-radius: 50%;
+  width: 3rem;
+  height: 3rem;
+  cursor: pointer;
+  opacity: 0;
+  transition: var(--transition-normal);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--shadow-lg);
+}
+
+.scroll-to-top.visible {
+  opacity: 1;
+}
+
+.scroll-to-top:hover {
+  background: var(--primary-dark);
+  transform: translateY(-2px);
+}
+
+/* Page Transitions */
+.page-enter {
+  opacity: 0;
+  transform: translateY(20px);
+}
+
+.page-enter-active {
+  opacity: 1;
+  transform: translateY(0);
+  transition: var(--transition-slow);
+}
+
+.page-exit {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.page-exit-active {
+  opacity: 0;
+  transform: translateY(-20px);
+  transition: var(--transition-fast);
+}

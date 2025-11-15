@@ -1,0 +1,261 @@
+.friends-page {
+  padding: var(--section-padding);
+  background: linear-gradient(135deg, var(--gray-50) 0%, #fef3c7 100%);
+  min-height: calc(100vh - 80px);
+}
+
+.friends-hero {
+  text-align: center;
+  margin-bottom: 4rem;
+}
+
+.friends-hero h1 {
+  font-size: 3rem;
+  margin-bottom: 1.5rem;
+  background: linear-gradient(135deg, var(--primary-color) 0%, var(--accent-color) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Friends Grid */
+.friends-grid-section {
+  margin-bottom: 4rem;
+}
+
+.friends-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  gap: 2rem;
+  margin-top: 2rem;
+}
+
+.friend-card {
+  background: var(--white);
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+  box-shadow: var(--shadow-md);
+  transition: var(--transition-normal);
+  position: relative;
+}
+
+.friend-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(135deg, 
+    var(--primary-color) 0%, 
+    var(--secondary-color) 50%, 
+    var(--accent-color) 100%);
+  opacity: 0;
+  transition: var(--transition-normal);
+}
+
+.friend-card:hover {
+  transform: translateY(-8px);
+  box-shadow: var(--shadow-xl);
+}
+
+.friend-card:hover::before {
+  opacity: 1;
+}
+
+.friend-image-container {
+  display: flex;
+  justify-content: center;
+  padding: 2rem 2rem 1rem;
+}
+
+.friend-image {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 4px solid var(--white);
+  box-shadow: var(--shadow-lg);
+  transition: var(--transition-normal);
+}
+
+.friend-card:hover .friend-image {
+  transform: scale(1.05);
+  box-shadow: var(--shadow-xl);
+}
+
+.friend-content {
+  padding: 0 2rem 2rem;
+  text-align: center;
+}
+
+.friend-name {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+  color: var(--gray-900);
+}
+
+.friend-title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--primary-color);
+  margin-bottom: 0.5rem;
+}
+
+.friend-location {
+  font-size: 0.875rem;
+  color: var(--gray-500);
+  margin-bottom: 1rem;
+}
+
+.friend-description {
+  font-size: 0.875rem;
+  line-height: 1.6;
+  color: var(--gray-600);
+  margin-bottom: 1.5rem;
+  text-align: left;
+}
+
+.friend-skills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+  justify-content: center;
+}
+
+.skill-badge {
+  background: linear-gradient(135deg, var(--primary-light) 0%, var(--spiritual-light) 100%);
+  color: var(--white);
+  padding: 0.25rem 0.75rem;
+  border-radius: var(--radius-md);
+  font-size: 0.75rem;
+  font-weight: 500;
+  transition: var(--transition-fast);
+}
+
+.skill-badge:hover {
+  transform: scale(1.05);
+}
+
+.friend-social {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.social-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.375rem 0.75rem;
+  background: var(--gray-100);
+  color: var(--gray-700);
+  border-radius: var(--radius-md);
+  font-size: 0.75rem;
+  font-weight: 500;
+  text-decoration: none;
+  transition: var(--transition-fast);
+}
+
+.social-link:hover {
+  background: var(--primary-color);
+  color: var(--white);
+  transform: translateY(-1px);
+}
+
+/* Friends Footer */
+.friends-footer {
+  margin-top: 4rem;
+}
+
+.connect-invitation {
+  background: var(--white);
+  padding: 3rem;
+  border-radius: var(--radius-xl);
+  text-align: center;
+  box-shadow: var(--shadow-lg);
+  position: relative;
+  overflow: hidden;
+}
+
+.connect-invitation::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(135deg, 
+    transparent 0%, 
+    rgba(99, 102, 241, 0.05) 50%, 
+    transparent 100%);
+  animation: shimmer 3s ease-in-out infinite;
+}
+
+@keyframes shimmer {
+  0%, 100% { transform: rotate(0deg); }
+  50% { transform: rotate(180deg); }
+}
+
+.connect-invitation h2 {
+  color: var(--gray-900);
+  margin-bottom: 1rem;
+  position: relative;
+  z-index: 1;
+}
+
+.connect-invitation p {
+  color: var(--gray-600);
+  margin-bottom: 2rem;
+  font-size: 1.125rem;
+  position: relative;
+  z-index: 1;
+}
+
+.connect-invitation .btn {
+  position: relative;
+  z-index: 1;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .friends-grid {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+  
+  .friends-hero h1 {
+    font-size: 2.5rem;
+  }
+  
+  .friend-card {
+    margin: 0 1rem;
+  }
+  
+  .connect-invitation {
+    padding: 2rem;
+    margin: 0 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .friends-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .friend-content {
+    padding: 0 1.5rem 1.5rem;
+  }
+  
+  .friends-hero h1 {
+    font-size: 2rem;
+  }
+  
+  .friend-social {
+    flex-direction: column;
+    align-items: center;
+  }
+}
