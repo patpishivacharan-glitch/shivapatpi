@@ -151,7 +151,6 @@
 
 /* Mobile Menu Overlay */
 .mobile-menu-overlay {
-  display: none;
   position: fixed;
   top: 0;
   left: 0;
@@ -172,6 +171,12 @@
   .nav {
     position: static;
     background: transparent;
+    right: auto;
+    top: auto;
+    width: auto;
+    height: auto;
+    box-shadow: none;
+    z-index: auto;
   }
   
   .mobile-menu-toggle {
@@ -179,28 +184,8 @@
   }
 }
 
-/* Tablet Navigation */
-@media (max-width: 768px) and (min-width: 641px) {
-  .header .container {
-    padding: 0.75rem 1.5rem;
-  }
-  
-  .nav-list {
-    gap: 1rem;
-  }
-  
-  .nav-link {
-    padding: 0.375rem 0.75rem;
-    font-size: 0.875rem;
-  }
-  
-  .logo-text {
-    font-size: 1.25rem;
-  }
-}
-
-/* Mobile Navigation */
-@media (max-width: 640px) {
+/* Tablet and Mobile Navigation */
+@media (max-width: 768px) {
   .header .container {
     padding: 0.75rem 1rem;
   }
@@ -216,37 +201,33 @@
   .nav {
     position: fixed;
     top: 80px;
-    left: 0;
-    right: 0;
-    bottom: 0;
+    right: -100%;
+    width: 100%;
+    height: calc(100vh - 80px);
     background: var(--white);
-    transform: translateX(100%);
-    opacity: 0;
-    visibility: hidden;
-    transition: all var(--transition-normal);
+    box-shadow: -2px 0 10px rgba(0, 0, 0, 0.1);
+    transition: right var(--transition-normal);
     overflow-y: auto;
     z-index: 1000;
   }
   
   .nav.mobile-open {
-    transform: translateX(0);
-    opacity: 1;
-    visibility: visible;
-  }
-  
-  .nav.mobile-open + .mobile-menu-overlay {
-    display: block;
+    right: 0;
   }
   
   .nav-list {
+    display: flex;
     flex-direction: column;
     padding: 2rem 1rem;
     gap: 1rem;
     height: 100%;
     justify-content: flex-start;
+    list-style: none;
+    margin: 0;
   }
   
   .nav-link {
+    display: block;
     width: 100%;
     text-align: center;
     padding: 1rem;
@@ -254,6 +235,9 @@
     border-radius: var(--radius-lg);
     background: var(--gray-50);
     margin-bottom: 0.5rem;
+    color: var(--gray-700);
+    text-decoration: none;
+    transition: var(--transition-normal);
   }
   
   .nav-link:hover,
@@ -281,6 +265,7 @@
   
   .nav {
     top: 70px;
+    height: calc(100vh - 70px);
   }
   
   .nav-list {
