@@ -6,6 +6,7 @@ import AboutMe from './pages/AboutMe';
 import Technical from './pages/Technical';
 import Spiritual from './pages/Spiritual';
 import Friends from './pages/Friends';
+import Books from './pages/Books';
 import ContactUs from './pages/ContactUs';
 import './styles/App.css';
 
@@ -21,6 +22,7 @@ function App() {
             <Route path="/technical" element={<Technical />} />
             <Route path="/spiritual" element={<Spiritual />} />
             <Route path="/friends" element={<Friends />} />
+            <Route path="/books" element={<Books />} />
             <Route path="/contact" element={<ContactUs />} />
           </Routes>
         </main>
