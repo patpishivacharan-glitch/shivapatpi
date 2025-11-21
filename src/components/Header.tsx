@@ -46,8 +46,9 @@ const Header: React.FC = () => {
                 to="/" 
                 className={`nav-link ${isActive('/')}`}
                 onClick={closeMobileMenu}
+                title="Home"
               >
-                Home
+                <span className="nav-icon">🏠</span>
               </Link>
             </li>
             <li>
@@ -55,8 +56,9 @@ const Header: React.FC = () => {
                 to="/about" 
                 className={`nav-link ${isActive('/about')}`}
                 onClick={closeMobileMenu}
+                title="About Me"
               >
-                AboutMe
+                <span className="nav-icon">👤</span>
               </Link>
             </li>
             <li>
@@ -64,8 +66,9 @@ const Header: React.FC = () => {
                 to="/technical" 
                 className={`nav-link ${isActive('/technical')}`}
                 onClick={closeMobileMenu}
+                title="Technical"
               >
-                Technical
+                <span className="nav-icon">💻</span>
               </Link>
             </li>
             <li>
@@ -73,8 +76,9 @@ const Header: React.FC = () => {
                 to="/spiritual" 
                 className={`nav-link ${isActive('/spiritual')}`}
                 onClick={closeMobileMenu}
+                title="Spiritual"
               >
-                Spiritual
+                <span className="nav-icon">🧘</span>
               </Link>
             </li>
             <li>
@@ -82,8 +86,9 @@ const Header: React.FC = () => {
                 to="/friends" 
                 className={`nav-link ${isActive('/friends')}`}
                 onClick={closeMobileMenu}
+                title="Friends"
               >
-                Friends
+                <span className="nav-icon">👥</span>
               </Link>
             </li>
             <li>
@@ -91,8 +96,9 @@ const Header: React.FC = () => {
                 to="/books" 
                 className={`nav-link ${isActive('/books')}`}
                 onClick={closeMobileMenu}
+                title="Books"
               >
-                Books
+                <span className="nav-icon">📚</span>
               </Link>
             </li>
             <li>
@@ -100,8 +106,9 @@ const Header: React.FC = () => {
                 to="/contact" 
                 className={`nav-link ${isActive('/contact')}`}
                 onClick={closeMobileMenu}
+                title="Contact Us"
               >
-                ContactUs
+                <span className="nav-icon">📧</span>
               </Link>
             </li>
           </ul>
