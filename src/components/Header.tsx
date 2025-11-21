@@ -49,6 +49,7 @@ const Header: React.FC = () => {
                 title="About Me"
               >
                 <span className="nav-icon">👤</span>
+                <span className="nav-text">About Me</span>
               </Link>
             </li>
             <li>
@@ -59,6 +60,7 @@ const Header: React.FC = () => {
                 title="Technical"
               >
                 <span className="nav-icon">💻</span>
+                <span className="nav-text">Technical</span>
               </Link>
             </li>
             <li>
@@ -69,6 +71,7 @@ const Header: React.FC = () => {
                 title="Spiritual"
               >
                 <span className="nav-icon">🧘</span>
+                <span className="nav-text">Spiritual</span>
               </Link>
             </li>
             <li>
@@ -79,6 +82,7 @@ const Header: React.FC = () => {
                 title="Friends"
               >
                 <span className="nav-icon">👥</span>
+                <span className="nav-text">Friends</span>
               </Link>
             </li>
             <li>
@@ -89,6 +93,7 @@ const Header: React.FC = () => {
                 title="Books"
               >
                 <span className="nav-icon">📚</span>
+                <span className="nav-text">Books</span>
               </Link>
             </li>
             <li>
@@ -99,6 +104,7 @@ const Header: React.FC = () => {
                 title="Contact Us"
               >
                 <span className="nav-icon">📧</span>
+                <span className="nav-text">Contact</span>
               </Link>
             </li>
           </ul>
