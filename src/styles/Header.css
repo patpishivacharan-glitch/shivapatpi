@@ -19,22 +19,32 @@
   position: relative;
 }
 
-.logo-text {
-  font-size: 1.5rem;
-  font-weight: 700;
-  font-family: var(--font-heading);
-  background: linear-gradient(135deg, var(--primary-color) 0%, var(--spiritual-primary) 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+.logo-icon {
   text-decoration: none;
   transition: var(--transition-fast);
   z-index: 1001;
   position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem;
+  border-radius: var(--radius-md);
 }
 
-.logo-text:hover {
-  transform: scale(1.05);
+.logo-icon:hover {
+  transform: scale(1.1);
+  background: rgba(var(--primary-color-rgb), 0.1);
+}
+
+.home-icon {
+  font-size: 2rem;
+  display: block;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+  transition: var(--transition-fast);
+}
+
+.logo-icon:hover .home-icon {
+  transform: rotate(-5deg) scale(1.1);
 }
 
 /* Navigation Styles */
@@ -205,8 +215,8 @@
     padding: 0.75rem 1rem;
   }
   
-  .logo-text {
-    font-size: 1.125rem;
+  .home-icon {
+    font-size: 1.75rem;
   }
   
   .mobile-menu-toggle {
@@ -280,8 +290,8 @@
     height: 70px;
   }
   
-  .logo-text {
-    font-size: 1rem;
+  .home-icon {
+    font-size: 1.5rem;
   }
   
   .nav {

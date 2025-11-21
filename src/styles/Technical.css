@@ -222,10 +222,39 @@
   box-shadow: var(--shadow-lg);
 }
 
+.experience-header {
+  margin-bottom: 1rem;
+}
+
+.company-info {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.company-icon {
+  width: 48px;
+  height: 48px;
+  object-fit: contain;
+  border-radius: var(--radius-md);
+  background: var(--white);
+  padding: 4px;
+  box-shadow: var(--shadow-sm);
+  flex-shrink: 0;
+}
+
 .timeline-content h3 {
   color: var(--gray-900);
-  margin-bottom: 0.75rem;
+  margin: 0 0 0.25rem 0;
   font-size: 1.125rem;
+  font-weight: 600;
+}
+
+.company-name {
+  color: var(--primary-color);
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 500;
 }
 
 .timeline-content p {
@@ -262,6 +291,15 @@
   .timeline-date {
     width: auto;
   }
+
+  .company-info {
+    gap: 0.75rem;
+  }
+  
+  .company-icon {
+    width: 40px;
+    height: 40px;
+  }
 }
 
 @media (max-width: 480px) {
@@ -273,5 +311,22 @@
   .project-card,
   .timeline-content {
     padding: 1.5rem;
+  }
+
+  .company-info {
+    gap: 0.5rem;
+  }
+  
+  .company-icon {
+    width: 36px;
+    height: 36px;
+  }
+  
+  .timeline-content h3 {
+    font-size: 1rem;
+  }
+  
+  .company-name {
+    font-size: 0.875rem;
   }
 }

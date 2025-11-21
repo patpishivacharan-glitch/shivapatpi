@@ -27,6 +27,44 @@ const Technical: React.FC = () => {
     }
   ];
 
+  const experiences = [
+    {
+      period: '2023 - Present',
+      title: 'Full Stack Software Developer',
+      company: 'Microsoft',
+      companyIcon: '/icons/microsoft-logo.svg',
+      description: 'Leading full-stack development projects, mentoring junior developers, and implementing best practices for code quality and performance optimization.'
+    },
+    {
+      period: '2022 - 2023',
+      title: 'Software Developer',
+      company: 'Mindtree Consulting Pvt Limited',
+      companyIcon: '/icons/mindtree-logo.svg',
+      description: 'Developed and maintained web applications using modern JavaScript frameworks, collaborated with cross-functional teams, and contributed to system architecture decisions.'
+    },
+    {
+      period: '2020 - 2022',
+      title: 'Customer Engineer',
+      company: 'AzTechSoft',
+      companyIcon: '/icons/aztechsoft-logo.svg',
+      description: 'Provided technical support and solutions to enterprise customers, implemented custom integrations, and optimized system performance for large-scale deployments.'
+    },
+    {
+      period: '2016 - 2020',
+      title: 'DevOps Engineer',
+      company: 'Infotech Enterprises',
+      companyIcon: '/icons/infotech-enterprises-logo.svg',
+      description: 'Automated deployment pipelines, managed cloud infrastructure, and established CI/CD best practices to improve development workflow and system reliability.'
+    },
+    {
+      period: '2013 - 2016',
+      title: 'Program Manager',
+      company: 'Microsoft',
+      companyIcon: '/icons/microsoft-logo.svg',
+      description: 'Coordinated cross-functional teams, managed project timelines, and ensured successful delivery of software products while maintaining quality standards.'
+    }
+  ];
+
   return (
     <div className="technical-page">
       <div className="container">
@@ -74,20 +112,31 @@ const Technical: React.FC = () => {
         <section className="experience-section">
           <h2>Professional Experience</h2>
           <div className="experience-timeline">
-            <div className="timeline-item">
-              <div className="timeline-date">2022 - Present</div>
-              <div className="timeline-content">
-                <h3>Senior Software Developer</h3>
-                <p>Leading full-stack development projects, mentoring junior developers, and implementing best practices for code quality and performance optimization.</p>
+            {experiences.map((experience, index) => (
+              <div key={index} className="timeline-item">
+                <div className="timeline-date">{experience.period}</div>
+                <div className="timeline-content">
+                  <div className="experience-header">
+                    <div className="company-info">
+                      <img 
+                        src={experience.companyIcon} 
+                        alt={`${experience.company} logo`} 
+                        className="company-icon"
+                        onError={(e) => {
+                          const target = e.target as HTMLImageElement;
+                          target.style.display = 'none';
+                        }}
+                      />
+                      <div>
+                        <h3>{experience.title}</h3>
+                        <h4 className="company-name">{experience.company}</h4>
+                      </div>
+                    </div>
+                  </div>
+                  <p>{experience.description}</p>
+                </div>
               </div>
-            </div>
-            <div className="timeline-item">
-              <div className="timeline-date">2020 - 2022</div>
-              <div className="timeline-content">
-                <h3>Full Stack Developer</h3>
-                <p>Developed and maintained web applications using modern JavaScript frameworks, collaborated with cross-functional teams, and contributed to system architecture decisions.</p>
-              </div>
-            </div>
+            ))}
           </div>
         </section>
       </div>

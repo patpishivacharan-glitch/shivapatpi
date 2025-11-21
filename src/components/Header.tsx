@@ -22,8 +22,8 @@ const Header: React.FC = () => {
     <header className="header">
       <div className="container">
         <div className="logo">
-          <Link to="/" className="logo-text" onClick={closeMobileMenu}>
-            ShivaPatpi
+          <Link to="/" className="logo-icon" onClick={closeMobileMenu} title="Home">
+            <span className="home-icon">🏠</span>
           </Link>
         </div>
         
@@ -41,16 +41,6 @@ const Header: React.FC = () => {
         
         <nav className={`nav ${isMobileMenuOpen ? 'mobile-open' : ''}`}>
           <ul className="nav-list">
-            <li>
-              <Link 
-                to="/" 
-                className={`nav-link ${isActive('/')}`}
-                onClick={closeMobileMenu}
-                title="Home"
-              >
-                <span className="nav-icon">🏠</span>
-              </Link>
-            </li>
             <li>
               <Link 
                 to="/about" 

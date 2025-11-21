@@ -28,6 +28,25 @@ const HomePage: React.FC = () => {
   return (
     <div className="home-page">
       <section className="hero-spiritual-section">
+        <div className="hero-profile">
+          <div className="container">
+            <div className="profile-content">
+              <div className="profile-image-container">
+                <img 
+                  src="/icons/shivapatpi.jpg" 
+                  alt="Shiva Patpi" 
+                  className="profile-image"
+                />
+              </div>
+              <div className="profile-text">
+                <h1 className="profile-name">Shivapatpi</h1>
+                <p className="profile-tagline">
+                  Full Stack Developer | Spiritual Seeker | Lifelong Learner
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
         <div className="spiritual-carousel">
           <button className="carousel-arrow carousel-arrow-left" onClick={prevSlide}>
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
