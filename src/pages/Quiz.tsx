@@ -1,4 +1,5 @@
 import React, { useState, useCallback } from 'react';
+import { useAuth, QuizHistoryEntry } from '../contexts/AuthContext';
 import '../styles/Quiz.css';
 
 interface Question {
@@ -18,7 +19,7 @@ interface QuizCategory {
   questions: Question[];
 }
 
-type QuizState = 'categories' | 'quiz' | 'results';
+type QuizState = 'login' | 'categories' | 'quiz' | 'results';
 
 const quizCategories: QuizCategory[] = [
   {
@@ -314,11 +315,47 @@ const quizCategories: QuizCategory[] = [
 ];
 
 const Quiz: React.FC = () => {
-  const [quizState, setQuizState] = useState<QuizState>('categories');
+  const { user, loading, signInWithGoogle, signInWithMicrosoft, logout, quizHistory, addQuizHistory, clearHistory } = useAuth();
+  const [quizState, setQuizState] = useState<QuizState>('login');
   const [selectedCategory, setSelectedCategory] = useState<QuizCategory | null>(null);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [selectedAnswers, setSelectedAnswers] = useState<(number | null)[]>([]);
   const [showExplanation, setShowExplanation] = useState(false);
+  const [authError, setAuthError] = useState<string>('');
+  const [showHistory, setShowHistory] = useState(false);
+
+  // Redirect to categories if already logged in
+  React.useEffect(() => {
+    if (user && quizState === 'login') {
+      setQuizState('categories');
+    }
+    if (!user && !loading && quizState !== 'login') {
+      setQuizState('login');
+    }
+  }, [user, loading, quizState]);
+
+  const handleGoogleSignIn = async () => {
+    setAuthError('');
+    try {
+      await signInWithGoogle();
+    } catch (error: any) {
+      setAuthError(error?.message || 'Failed to sign in with Google. Please try again.');
+    }
+  };
+
+  const handleMicrosoftSignIn = async () => {
+    setAuthError('');
+    try {
+      await signInWithMicrosoft();
+    } catch (error: any) {
+      setAuthError(error?.message || 'Failed to sign in with Microsoft. Please try again.');
+    }
+  };
+
+  const handleLogout = async () => {
+    await logout();
+    setQuizState('login');
+  };
 
   const startQuiz = useCallback((category: QuizCategory) => {
     setSelectedCategory(category);
@@ -329,7 +366,7 @@ const Quiz: React.FC = () => {
   }, []);
 
   const selectAnswer = useCallback((answerIndex: number) => {
-    if (showExplanation) return; // Prevent changing answer after reveal
+    if (showExplanation) return;
     setSelectedAnswers(prev => {
       const updated = [...prev];
       updated[currentQuestionIndex] = answerIndex;
@@ -344,9 +381,21 @@ const Quiz: React.FC = () => {
     if (currentQuestionIndex < selectedCategory.questions.length - 1) {
       setCurrentQuestionIndex(prev => prev + 1);
     } else {
+      // Save to history before showing results
+      const score = selectedCategory.questions.reduce((s, q, i) => {
+        return s + (selectedAnswers[i] === q.correctAnswer ? 1 : 0);
+      }, 0);
+      addQuizHistory({
+        categoryId: selectedCategory.id,
+        categoryTitle: selectedCategory.title,
+        categoryIcon: selectedCategory.icon,
+        score,
+        totalQuestions: selectedCategory.questions.length,
+        percentage: Math.round((score / selectedCategory.questions.length) * 100),
+      });
       setQuizState('results');
     }
-  }, [selectedCategory, currentQuestionIndex]);
+  }, [selectedCategory, currentQuestionIndex, selectedAnswers, addQuizHistory]);
 
   const goBackToCategories = useCallback(() => {
     setQuizState('categories');
@@ -383,35 +432,187 @@ const Quiz: React.FC = () => {
     return { emoji: '💪', title: 'Don\'t Give Up!', message: 'Every expert was once a beginner. Try again!' };
   };
 
+  const formatDate = (iso: string): string => {
+    const d = new Date(iso);
+    return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+  };
+
+  const getUserDisplayName = (): string => {
+    if (!user) return '';
+    return user.displayName || user.email || 'User';
+  };
+
+  const getUserPhoto = (): string | null => {
+    return user?.photoURL || null;
+  };
+
+  // User bar shown during quiz and categories
+  const renderUserBar = () => (
+    <div className="quiz-user-bar">
+      <div className="user-info-row">
+        {getUserPhoto() ? (
+          <img src={getUserPhoto()!} alt="Avatar" className="user-avatar" referrerPolicy="no-referrer" />
+        ) : (
+          <div className="user-avatar-placeholder">
+            {getUserDisplayName().charAt(0).toUpperCase()}
+          </div>
+        )}
+        <div className="user-details">
+          <span className="user-name">{getUserDisplayName()}</span>
+          {user?.email && <span className="user-email">{user.email}</span>}
+        </div>
+      </div>
+      <div className="user-actions">
+        <button
+          className="history-toggle-btn"
+          onClick={() => setShowHistory(!showHistory)}
+          title="Quiz History"
+        >
+          📊 History {quizHistory.length > 0 && <span className="history-badge">{quizHistory.length}</span>}
+        </button>
+        <button className="logout-btn" onClick={handleLogout} title="Sign Out">
+          Sign Out
+        </button>
+      </div>
+    </div>
+  );
+
+  // History sidebar/panel
+  const renderHistoryPanel = () => (
+    <div className={`history-panel ${showHistory ? 'open' : ''}`}>
+      <div className="history-panel-header">
+        <h3>📊 Quiz History</h3>
+        <button className="history-close-btn" onClick={() => setShowHistory(false)}>✕</button>
+      </div>
+      {quizHistory.length === 0 ? (
+        <div className="history-empty">
+          <span className="history-empty-icon">📝</span>
+          <p>No quizzes completed yet.</p>
+          <p className="history-empty-sub">Take a quiz to see your results here!</p>
+        </div>
+      ) : (
+        <>
+          <div className="history-stats">
+            <div className="history-stat">
+              <span className="stat-number">{quizHistory.length}</span>
+              <span className="stat-label">Quizzes Taken</span>
+            </div>
+            <div className="history-stat">
+              <span className="stat-number">
+                {Math.round(quizHistory.reduce((sum, h) => sum + h.percentage, 0) / quizHistory.length)}%
+              </span>
+              <span className="stat-label">Avg Score</span>
+            </div>
+            <div className="history-stat">
+              <span className="stat-number">
+                {Math.max(...quizHistory.map(h => h.percentage))}%
+              </span>
+              <span className="stat-label">Best Score</span>
+            </div>
+          </div>
+          <div className="history-list">
+            {quizHistory.map((entry) => (
+              <div key={entry.id} className="history-entry">
+                <div className="history-entry-icon">{entry.categoryIcon}</div>
+                <div className="history-entry-info">
+                  <span className="history-entry-title">{entry.categoryTitle}</span>
+                  <span className="history-entry-date">{formatDate(entry.completedAt)}</span>
+                </div>
+                <div className={`history-entry-score ${entry.percentage >= 75 ? 'great' : entry.percentage >= 50 ? 'good' : 'low'}`}>
+                  {entry.score}/{entry.totalQuestions}
+                  <span className="history-entry-pct">{entry.percentage}%</span>
+                </div>
+              </div>
+            ))}
+          </div>
+          <button className="clear-history-btn" onClick={clearHistory}>
+            🗑️ Clear History
+          </button>
+        </>
+      )}
+    </div>
+  );
+
+  // Login Screen
+  const renderLogin = () => (
+    <div className="quiz-login-view">
+      <div className="login-card">
+        <div className="login-icon">🧩</div>
+        <h1>Quiz Challenge</h1>
+        <p className="login-subtitle">
+          Sign in to start taking quizzes, track your scores, and view your history.
+        </p>
+
+        {authError && (
+          <div className="auth-error">
+            <span>⚠️</span> {authError}
+          </div>
+        )}
+
+        <div className="login-buttons">
+          <button className="login-btn google-btn" onClick={handleGoogleSignIn}>
+            <svg className="login-provider-icon" viewBox="0 0 24 24" width="20" height="20">
+              <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z"/>
+              <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+              <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+              <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+            </svg>
+            Sign in with Google
+          </button>
+
+          <button className="login-btn microsoft-btn" onClick={handleMicrosoftSignIn}>
+            <svg className="login-provider-icon" viewBox="0 0 24 24" width="20" height="20">
+              <rect fill="#F25022" x="1" y="1" width="10" height="10"/>
+              <rect fill="#7FBA00" x="13" y="1" width="10" height="10"/>
+              <rect fill="#00A4EF" x="1" y="13" width="10" height="10"/>
+              <rect fill="#FFB900" x="13" y="13" width="10" height="10"/>
+            </svg>
+            Sign in with Microsoft
+          </button>
+        </div>
+
+        <p className="login-note">
+          🔒 We only use your name and email for the quiz experience. No data is shared externally.
+        </p>
+      </div>
+    </div>
+  );
+
   // Category Selection Screen
   const renderCategories = () => (
     <div className="quiz-categories-view">
+      {renderUserBar()}
+
       <section className="quiz-hero">
         <h1>Quiz Challenge</h1>
         <p className="lead">
-          Choose a category and test your knowledge! Each quiz has 8 questions 
-          with instant feedback and explanations.
+          Welcome, <strong>{getUserDisplayName()}</strong>! Choose a category and test your knowledge.
         </p>
       </section>
 
-      <div className="categories-grid">
-        {quizCategories.map(category => (
-          <div
-            key={category.id}
-            className="category-card"
-            onClick={() => startQuiz(category)}
-            style={{ '--category-color': category.color } as React.CSSProperties}
-          >
-            <div className="category-icon">{category.icon}</div>
-            <h3>{category.title}</h3>
-            <p>{category.description}</p>
-            <div className="category-meta">
-              <span className="question-count">{category.questions.length} Questions</span>
-              <span className="start-label">Start Quiz →</span>
+      <div className="quiz-main-area">
+        <div className="categories-grid">
+          {quizCategories.map(category => (
+            <div
+              key={category.id}
+              className="category-card"
+              onClick={() => startQuiz(category)}
+              style={{ '--category-color': category.color } as React.CSSProperties}
+            >
+              <div className="category-icon">{category.icon}</div>
+              <h3>{category.title}</h3>
+              <p>{category.description}</p>
+              <div className="category-meta">
+                <span className="question-count">{category.questions.length} Questions</span>
+                <span className="start-label">Start Quiz →</span>
+              </div>
             </div>
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
+
+      {renderHistoryPanel()}
+      {showHistory && <div className="history-overlay" onClick={() => setShowHistory(false)} />}
     </div>
   );
 
@@ -424,6 +625,8 @@ const Quiz: React.FC = () => {
 
     return (
       <div className="quiz-active-view">
+        {renderUserBar()}
+
         <div className="quiz-header-bar">
           <button className="back-btn" onClick={goBackToCategories}>
             ← Categories
@@ -501,6 +704,9 @@ const Quiz: React.FC = () => {
             </button>
           )}
         </div>
+
+        {renderHistoryPanel()}
+        {showHistory && <div className="history-overlay" onClick={() => setShowHistory(false)} />}
       </div>
     );
   };
@@ -514,6 +720,8 @@ const Quiz: React.FC = () => {
 
     return (
       <div className="quiz-results-view">
+        {renderUserBar()}
+
         <div className="results-card">
           <div className="results-emoji">{result.emoji}</div>
           <h1>{result.title}</h1>
@@ -574,13 +782,30 @@ const Quiz: React.FC = () => {
             </button>
           </div>
         </div>
+
+        {renderHistoryPanel()}
+        {showHistory && <div className="history-overlay" onClick={() => setShowHistory(false)} />}
       </div>
     );
   };
 
+  if (loading) {
+    return (
+      <div className="quiz-page">
+        <div className="container">
+          <div className="quiz-loading">
+            <div className="loading-spinner" />
+            <p>Loading...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="quiz-page">
       <div className="container">
+        {quizState === 'login' && renderLogin()}
         {quizState === 'categories' && renderCategories()}
         {quizState === 'quiz' && renderQuiz()}
         {quizState === 'results' && renderResults()}
