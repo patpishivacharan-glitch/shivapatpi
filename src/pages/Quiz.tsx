@@ -334,12 +334,32 @@ const Quiz: React.FC = () => {
     }
   }, [user, loading, quizState]);
 
+  const getFriendlyAuthError = (error: any): string => {
+    const code = error?.code || '';
+    if (code === 'auth/configuration-not-found') {
+      return 'This sign-in provider is not enabled yet. Please enable it in Firebase Console → Authentication → Sign-in method.';
+    }
+    if (code === 'auth/api-key-not-valid.-please-pass-a-valid-api-key.') {
+      return 'Firebase API key is invalid. Please check your .env configuration.';
+    }
+    if (code === 'auth/popup-closed-by-user') {
+      return 'Sign-in was cancelled. Please try again.';
+    }
+    if (code === 'auth/popup-blocked') {
+      return 'Pop-up was blocked by your browser. Please allow pop-ups and try again.';
+    }
+    if (code === 'auth/network-request-failed') {
+      return 'Network error. Please check your internet connection and try again.';
+    }
+    return error?.message || 'Sign-in failed. Please try again.';
+  };
+
   const handleGoogleSignIn = async () => {
     setAuthError('');
     try {
       await signInWithGoogle();
     } catch (error: any) {
-      setAuthError(error?.message || 'Failed to sign in with Google. Please try again.');
+      setAuthError(getFriendlyAuthError(error));
     }
   };
 
@@ -348,7 +368,7 @@ const Quiz: React.FC = () => {
     try {
       await signInWithMicrosoft();
     } catch (error: any) {
-      setAuthError(error?.message || 'Failed to sign in with Microsoft. Please try again.');
+      setAuthError(getFriendlyAuthError(error));
     }
   };
 
