@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import emailjs from '@emailjs/browser';
 import "../styles/ContactUs.css";
 
 const ContactUs: React.FC = () => {
@@ -8,6 +9,9 @@ const ContactUs: React.FC = () => {
     subject: "",
     message: "",
   });
+
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitStatus, setSubmitStatus] = useState<'idle' | 'success' | 'error'>('idle');
 
   const handleChange = (
     e: React.ChangeEvent<
@@ -20,12 +24,92 @@ const ContactUs: React.FC = () => {
     });
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Handle form submission here
-    console.log("Form submitted:", formData);
-    alert("Thank you for your message! I'll get back to you soon.");
-    setFormData({ name: "", email: "", subject: "", message: "" });
+    setIsSubmitting(true);
+    setSubmitStatus('idle');
+
+    // EmailJS configuration - You'll need to set these in your .env file
+    const serviceId = process.env.REACT_APP_EMAILJS_SERVICE_ID;
+    const templateId = process.env.REACT_APP_EMAILJS_TEMPLATE_ID;
+    const publicKey = process.env.REACT_APP_EMAILJS_PUBLIC_KEY;
+
+    // Check if EmailJS is properly configured
+    if (!serviceId || !templateId || !publicKey || 
+        publicKey === 'YOUR_PUBLIC_KEY_HERE' || 
+        serviceId === 'service_shivapatpi' || 
+        templateId === 'template_contact') {
+      
+      // EmailJS not configured, use fallback method
+      console.log('EmailJS not configured, using fallback method');
+      setIsSubmitting(false);
+      
+      const subject = encodeURIComponent(`Contact Form: ${formData.subject}`);
+      const body = encodeURIComponent(
+        `Name: ${formData.name}\nEmail: ${formData.email}\n\nMessage:\n${formData.message}`
+      );
+      
+      // Open email client directly
+      window.open(`mailto:patpi.shivacharan@gmail.com?subject=${subject}&body=${body}`);
+      
+      // Reset form and show success message
+      setFormData({ name: "", email: "", subject: "", message: "" });
+      setSubmitStatus('success');
+      
+      setTimeout(() => {
+        setSubmitStatus('idle');
+      }, 5000);
+      
+      return;
+    }
+
+    // Prepare template parameters
+    const templateParams = {
+      from_name: formData.name,
+      from_email: formData.email,
+      to_email: 'patpi.shivacharan@gmail.com',
+      subject: formData.subject,
+      message: formData.message,
+      reply_to: formData.email,
+    };
+
+    try {
+      // Send email using EmailJS
+      await emailjs.send(serviceId, templateId, templateParams, publicKey);
+      
+      setSubmitStatus('success');
+      setFormData({ name: "", email: "", subject: "", message: "" });
+      
+      // Show success message
+      setTimeout(() => {
+        setSubmitStatus('idle');
+      }, 5000);
+      
+    } catch (error) {
+      console.error('Email sending failed:', error);
+      setSubmitStatus('error');
+      
+      // Offer fallback option to open email client
+      const fallbackEmail = () => {
+        const subject = encodeURIComponent(`Contact Form: ${formData.subject}`);
+        const body = encodeURIComponent(
+          `Name: ${formData.name}\nEmail: ${formData.email}\n\nMessage:\n${formData.message}`
+        );
+        window.open(`mailto:patpi.shivacharan@gmail.com?subject=${subject}&body=${body}`);
+      };
+      
+      // Show error with fallback option
+      if (window.confirm('Failed to send message through the form. Would you like to open your email client instead?')) {
+        fallbackEmail();
+      }
+      
+      // Hide error message after 5 seconds
+      setTimeout(() => {
+        setSubmitStatus('idle');
+      }, 5000);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const contactMethods = [
@@ -167,8 +251,24 @@ const ContactUs: React.FC = () => {
                 ></textarea>
               </div>
 
-              <button type="submit" className="submit-btn">
-                Send Message
+              {submitStatus === 'success' && (
+                <div className="status-message success">
+                  ✅ Email client opened successfully! Please send the pre-filled message.
+                </div>
+              )}
+              
+              {submitStatus === 'error' && (
+                <div className="status-message error">
+                  ❌ Failed to send message. Opening email client as backup option.
+                </div>
+              )}
+
+              <button 
+                type="submit" 
+                className="submit-btn"
+                disabled={isSubmitting}
+              >
+                {isSubmitting ? 'Sending...' : 'Send Message'}
               </button>
             </form>
           </div>

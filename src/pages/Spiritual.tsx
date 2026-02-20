@@ -4,8 +4,8 @@ import '../styles/Spiritual.css';
 const Spiritual: React.FC = () => {
   const practices = [
     {
-      title: 'Daily Meditation',
-      description: 'Morning mindfulness practice to center the mind and connect with inner peace.',
+      title: 'Why Reading Bhagavad Gita is Important?',
+      description: 'This blog post explores the significance of the Bhagavad Gita in today\'s world, highlighting its timeless wisdom and practical teachings for personal growth and spiritual development.',
       icon: '🧘‍♂️'
     },
     {

@@ -8,6 +8,7 @@ import Spiritual from './pages/Spiritual';
 import Friends from './pages/Friends';
 import Books from './pages/Books';
 import ContactUs from './pages/ContactUs';
+import Quiz from './pages/Quiz';
 import './styles/App.css';
 
 function App() {
@@ -24,6 +25,7 @@ function App() {
             <Route path="/friends" element={<Friends />} />
             <Route path="/books" element={<Books />} />
             <Route path="/contact" element={<ContactUs />} />
+            <Route path="/quiz" element={<Quiz />} />
           </Routes>
         </main>
       </div>
