@@ -315,8 +315,8 @@ const quizCategories: QuizCategory[] = [
 ];
 
 const Quiz: React.FC = () => {
-  const { user, loading, signInWithGoogle, signInWithMicrosoft, logout, quizHistory, addQuizHistory, clearHistory } = useAuth();
-  const [quizState, setQuizState] = useState<QuizState>('login');
+  const { user, loading, firebaseAvailable, signInWithGoogle, signInWithMicrosoft, logout, quizHistory, addQuizHistory, clearHistory } = useAuth();
+  const [quizState, setQuizState] = useState<QuizState>(firebaseAvailable ? 'login' : 'categories');
   const [selectedCategory, setSelectedCategory] = useState<QuizCategory | null>(null);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [selectedAnswers, setSelectedAnswers] = useState<(number | null)[]>([]);
@@ -324,15 +324,19 @@ const Quiz: React.FC = () => {
   const [authError, setAuthError] = useState<string>('');
   const [showHistory, setShowHistory] = useState(false);
 
-  // Redirect to categories if already logged in
+  // Redirect to categories if already logged in (only when Firebase is configured)
   React.useEffect(() => {
+    if (!firebaseAvailable) {
+      if (quizState === 'login') setQuizState('categories');
+      return;
+    }
     if (user && quizState === 'login') {
       setQuizState('categories');
     }
     if (!user && !loading && quizState !== 'login') {
       setQuizState('login');
     }
-  }, [user, loading, quizState]);
+  }, [user, loading, quizState, firebaseAvailable]);
 
   const getFriendlyAuthError = (error: any): string => {
     const code = error?.code || '';
@@ -466,36 +470,39 @@ const Quiz: React.FC = () => {
     return user?.photoURL || null;
   };
 
-  // User bar shown during quiz and categories
-  const renderUserBar = () => (
-    <div className="quiz-user-bar">
-      <div className="user-info-row">
-        {getUserPhoto() ? (
-          <img src={getUserPhoto()!} alt="Avatar" className="user-avatar" referrerPolicy="no-referrer" />
-        ) : (
-          <div className="user-avatar-placeholder">
-            {getUserDisplayName().charAt(0).toUpperCase()}
+  // User bar shown during quiz and categories (only when logged in)
+  const renderUserBar = () => {
+    if (!firebaseAvailable || !user) return null;
+    return (
+      <div className="quiz-user-bar">
+        <div className="user-info-row">
+          {getUserPhoto() ? (
+            <img src={getUserPhoto()!} alt="Avatar" className="user-avatar" referrerPolicy="no-referrer" />
+          ) : (
+            <div className="user-avatar-placeholder">
+              {getUserDisplayName().charAt(0).toUpperCase()}
+            </div>
+          )}
+          <div className="user-details">
+            <span className="user-name">{getUserDisplayName()}</span>
+            {user?.email && <span className="user-email">{user.email}</span>}
           </div>
-        )}
-        <div className="user-details">
-          <span className="user-name">{getUserDisplayName()}</span>
-          {user?.email && <span className="user-email">{user.email}</span>}
+        </div>
+        <div className="user-actions">
+          <button
+            className="history-toggle-btn"
+            onClick={() => setShowHistory(!showHistory)}
+            title="Quiz History"
+          >
+            📊 History {quizHistory.length > 0 && <span className="history-badge">{quizHistory.length}</span>}
+          </button>
+          <button className="logout-btn" onClick={handleLogout} title="Sign Out">
+            Sign Out
+          </button>
         </div>
       </div>
-      <div className="user-actions">
-        <button
-          className="history-toggle-btn"
-          onClick={() => setShowHistory(!showHistory)}
-          title="Quiz History"
-        >
-          📊 History {quizHistory.length > 0 && <span className="history-badge">{quizHistory.length}</span>}
-        </button>
-        <button className="logout-btn" onClick={handleLogout} title="Sign Out">
-          Sign Out
-        </button>
-      </div>
-    </div>
-  );
+    );
+  };
 
   // History sidebar/panel
   const renderHistoryPanel = () => (
@@ -606,7 +613,10 @@ const Quiz: React.FC = () => {
       <section className="quiz-hero">
         <h1>Quiz Challenge</h1>
         <p className="lead">
-          Welcome, <strong>{getUserDisplayName()}</strong>! Choose a category and test your knowledge.
+          {user
+            ? <>Welcome, <strong>{getUserDisplayName()}</strong>! Choose a category and test your knowledge.</>
+            : <>Choose a category and test your knowledge! Each quiz has 8 questions with instant feedback.</>
+          }
         </p>
       </section>
 

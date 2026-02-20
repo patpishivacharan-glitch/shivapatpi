@@ -5,7 +5,7 @@ import {
   signOut,
   onAuthStateChanged,
 } from 'firebase/auth';
-import { auth, googleProvider, microsoftProvider } from '../firebase';
+import { getFirebaseAuth, googleProvider, microsoftProvider, isFirebaseConfigured } from '../firebase';
 
 export interface QuizHistoryEntry {
   id: string;
@@ -21,6 +21,7 @@ export interface QuizHistoryEntry {
 interface AuthContextType {
   user: User | null;
   loading: boolean;
+  firebaseAvailable: boolean;
   signInWithGoogle: () => Promise<void>;
   signInWithMicrosoft: () => Promise<void>;
   logout: () => Promise<void>;
@@ -50,22 +51,34 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [quizHistory, setQuizHistory] = useState<QuizHistoryEntry[]>([]);
+  const firebaseAvailable = isFirebaseConfigured();
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
-      setUser(firebaseUser);
-      if (firebaseUser) {
-        setQuizHistory(getStoredHistory(firebaseUser.uid));
-      } else {
-        setQuizHistory([]);
-      }
+    if (!firebaseAvailable) {
       setLoading(false);
-    });
-    return unsubscribe;
-  }, []);
+      return;
+    }
+    try {
+      const auth = getFirebaseAuth();
+      const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
+        setUser(firebaseUser);
+        if (firebaseUser) {
+          setQuizHistory(getStoredHistory(firebaseUser.uid));
+        } else {
+          setQuizHistory([]);
+        }
+        setLoading(false);
+      });
+      return unsubscribe;
+    } catch (error) {
+      console.error('Firebase init error:', error);
+      setLoading(false);
+    }
+  }, [firebaseAvailable]);
 
   const signInWithGoogle = useCallback(async () => {
     try {
+      const auth = getFirebaseAuth();
       await signInWithPopup(auth, googleProvider);
     } catch (error: any) {
       console.error('Google sign-in error:', error);
@@ -75,6 +88,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const signInWithMicrosoft = useCallback(async () => {
     try {
+      const auth = getFirebaseAuth();
       await signInWithPopup(auth, microsoftProvider);
     } catch (error: any) {
       console.error('Microsoft sign-in error:', error);
@@ -84,6 +98,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const logout = useCallback(async () => {
     try {
+      const auth = getFirebaseAuth();
       await signOut(auth);
     } catch (error: any) {
       console.error('Sign-out error:', error);
@@ -118,6 +133,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       value={{
         user,
         loading,
+        firebaseAvailable,
         signInWithGoogle,
         signInWithMicrosoft,
         logout,
