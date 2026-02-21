@@ -173,7 +173,7 @@
   height: 6px;
   background: var(--gray-200);
   border-radius: 3px;
-  margin-bottom: 2rem;
+  margin-bottom: 0.75rem;
   overflow: hidden;
 }
 
@@ -181,6 +181,100 @@
   height: 100%;
   border-radius: 3px;
   transition: width 0.4s ease;
+}
+
+/* ===== TIMER ===== */
+.timer-section {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.timer-bar-container {
+  flex: 1;
+  height: 8px;
+  background: var(--gray-200);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.timer-bar-fill {
+  height: 100%;
+  border-radius: 4px;
+  background: linear-gradient(90deg, #22c55e, #4ade80);
+  transition: width 1s linear;
+}
+
+.timer-bar-fill.warning {
+  background: linear-gradient(90deg, #f59e0b, #fbbf24);
+}
+
+.timer-bar-fill.danger {
+  background: linear-gradient(90deg, #ef4444, #f87171);
+  animation: timerPulse 0.5s ease infinite;
+}
+
+.timer-display {
+  position: relative;
+  width: 48px;
+  height: 48px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.timer-ring {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  transform: rotate(-90deg);
+}
+
+.timer-ring-bg {
+  fill: none;
+  stroke: var(--gray-200);
+  stroke-width: 3;
+}
+
+.timer-ring-fill {
+  fill: none;
+  stroke: #22c55e;
+  stroke-width: 3;
+  stroke-linecap: round;
+  transition: stroke-dasharray 1s linear;
+}
+
+.timer-display.warning .timer-ring-fill {
+  stroke: #f59e0b;
+}
+
+.timer-display.danger .timer-ring-fill {
+  stroke: #ef4444;
+}
+
+.timer-text {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--gray-800);
+  z-index: 1;
+}
+
+.timer-display.warning .timer-text {
+  color: #d97706;
+}
+
+.timer-display.danger .timer-text {
+  color: #dc2626;
+  animation: timerPulse 0.5s ease infinite;
+}
+
+@keyframes timerPulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
 }
 
 /* Question Card */
@@ -319,6 +413,11 @@
 .explanation-box.incorrect {
   background: #fef2f2;
   border: 1px solid #fecaca;
+}
+
+.explanation-box.timeout {
+  background: #fff7ed;
+  border: 1px solid #fed7aa;
 }
 
 .explanation-header {
@@ -495,6 +594,10 @@
 
 .breakdown-item.incorrect {
   background: #fef2f2;
+}
+
+.breakdown-item.timeout {
+  background: #fff7ed;
 }
 
 .breakdown-status {

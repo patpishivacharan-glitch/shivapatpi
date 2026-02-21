@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { useAuth, QuizHistoryEntry } from '../contexts/AuthContext';
 import '../styles/Quiz.css';
 
@@ -324,6 +324,49 @@ const Quiz: React.FC = () => {
   const [authError, setAuthError] = useState<string>('');
   const [showHistory, setShowHistory] = useState(false);
 
+  // Timer state
+  const QUESTION_TIME_LIMIT = 30; // seconds per question
+  const [timeLeft, setTimeLeft] = useState(QUESTION_TIME_LIMIT);
+  const [timedOut, setTimedOut] = useState(false);
+  const timerRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Start/reset timer when question changes or quiz starts
+  useEffect(() => {
+    if (quizState !== 'quiz') return;
+    setTimeLeft(QUESTION_TIME_LIMIT);
+    setTimedOut(false);
+
+    timerRef.current = setInterval(() => {
+      setTimeLeft(prev => {
+        if (prev <= 1) {
+          if (timerRef.current) clearInterval(timerRef.current);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => {
+      if (timerRef.current) clearInterval(timerRef.current);
+    };
+  }, [currentQuestionIndex, quizState]);
+
+  // Handle timeout — auto-reveal answer
+  useEffect(() => {
+    if (timeLeft === 0 && quizState === 'quiz' && !showExplanation) {
+      setTimedOut(true);
+      setShowExplanation(true);
+      // Mark as unanswered (null stays in selectedAnswers)
+    }
+  }, [timeLeft, quizState, showExplanation]);
+
+  // Stop timer when answer is selected
+  useEffect(() => {
+    if (showExplanation && timerRef.current) {
+      clearInterval(timerRef.current);
+    }
+  }, [showExplanation]);
+
   // Redirect to categories if already logged in (only when Firebase is configured)
   React.useEffect(() => {
     if (!firebaseAvailable) {
@@ -386,6 +429,8 @@ const Quiz: React.FC = () => {
     setCurrentQuestionIndex(0);
     setSelectedAnswers(new Array(category.questions.length).fill(null));
     setShowExplanation(false);
+    setTimeLeft(QUESTION_TIME_LIMIT);
+    setTimedOut(false);
     setQuizState('quiz');
   }, []);
 
@@ -402,6 +447,7 @@ const Quiz: React.FC = () => {
   const nextQuestion = useCallback(() => {
     if (!selectedCategory) return;
     setShowExplanation(false);
+    setTimedOut(false);
     if (currentQuestionIndex < selectedCategory.questions.length - 1) {
       setCurrentQuestionIndex(prev => prev + 1);
     } else {
@@ -678,6 +724,28 @@ const Quiz: React.FC = () => {
           />
         </div>
 
+        <div className="timer-section">
+          <div className="timer-bar-container">
+            <div
+              className={`timer-bar-fill ${timeLeft <= 10 ? 'danger' : timeLeft <= 20 ? 'warning' : ''}`}
+              style={{ width: `${(timeLeft / QUESTION_TIME_LIMIT) * 100}%` }}
+            />
+          </div>
+          <div className={`timer-display ${timeLeft <= 10 ? 'danger' : timeLeft <= 20 ? 'warning' : ''}`}>
+            <svg className="timer-ring" viewBox="0 0 40 40">
+              <circle cx="20" cy="20" r="17" className="timer-ring-bg" />
+              <circle
+                cx="20" cy="20" r="17"
+                className="timer-ring-fill"
+                style={{
+                  strokeDasharray: `${(timeLeft / QUESTION_TIME_LIMIT) * 106.81} 106.81`,
+                }}
+              />
+            </svg>
+            <span className="timer-text">{timeLeft}</span>
+          </div>
+        </div>
+
         <div className="question-card">
           <h2 className="question-text">{question.question}</h2>
           <div className="options-list">
@@ -718,9 +786,9 @@ const Quiz: React.FC = () => {
           </div>
 
           {showExplanation && (
-            <div className={`explanation-box ${selectedAnswer === question.correctAnswer ? 'correct' : 'incorrect'}`}>
+            <div className={`explanation-box ${timedOut ? 'timeout' : selectedAnswer === question.correctAnswer ? 'correct' : 'incorrect'}`}>
               <div className="explanation-header">
-                {selectedAnswer === question.correctAnswer ? '✅ Correct!' : '❌ Incorrect'}
+                {timedOut ? '⏰ Time\'s Up!' : selectedAnswer === question.correctAnswer ? '✅ Correct!' : '❌ Incorrect'}
               </div>
               <p>{question.explanation}</p>
             </div>
@@ -783,17 +851,19 @@ const Quiz: React.FC = () => {
             <h2>Question Breakdown</h2>
             <div className="breakdown-list">
               {selectedCategory.questions.map((question, index) => {
+                const wasAnswered = selectedAnswers[index] !== null;
                 const isCorrect = selectedAnswers[index] === question.correctAnswer;
+                const isTimedOut = !wasAnswered;
                 return (
-                  <div key={index} className={`breakdown-item ${isCorrect ? 'correct' : 'incorrect'}`}>
+                  <div key={index} className={`breakdown-item ${isCorrect ? 'correct' : isTimedOut ? 'timeout' : 'incorrect'}`}>
                     <div className="breakdown-status">
-                      {isCorrect ? '✅' : '❌'}
+                      {isCorrect ? '✅' : isTimedOut ? '⏰' : '❌'}
                     </div>
                     <div className="breakdown-content">
                       <p className="breakdown-question">Q{index + 1}: {question.question}</p>
                       {!isCorrect && (
                         <p className="breakdown-answer">
-                          Correct answer: <strong>{question.options[question.correctAnswer]}</strong>
+                          {isTimedOut ? 'Time ran out! ' : ''}Correct answer: <strong>{question.options[question.correctAnswer]}</strong>
                         </p>
                       )}
                     </div>
