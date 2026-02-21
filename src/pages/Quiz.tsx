@@ -1,5 +1,6 @@
 import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { useAuth, QuizHistoryEntry } from '../contexts/AuthContext';
+import { getRandomPythonQuestions } from '../data/pythonQuestions';
 import '../styles/Quiz.css';
 
 interface Question {
@@ -27,6 +28,7 @@ interface QuizSubcategory {
   description: string;
   color: string;
   questions: Question[];
+  questionPoolSize?: number;
 }
 
 type QuizState = 'login' | 'categories' | 'subcategories' | 'quiz' | 'results';
@@ -129,8 +131,9 @@ const quizCategories: QuizCategory[] = [
         id: 'python',
         title: 'Python',
         icon: '🐍',
-        description: 'Python fundamentals, data structures, decorators, and Pythonic patterns.',
+        description: '50-question pool — Beginner, Intermediate & Advanced. 10 random questions each attempt!',
         color: '#3776ab',
+        questionPoolSize: 50,
         questions: [
           {
             id: 1,
@@ -901,9 +904,17 @@ const Quiz: React.FC = () => {
   };
 
   const startQuiz = useCallback((category: QuizCategory | QuizSubcategory) => {
-    setSelectedCategory(category as QuizCategory);
+    let quizCategory = { ...category } as QuizCategory;
+
+    // If this is the Python subcategory with a question pool, randomly select 10
+    if (category.id === 'python' && (category as QuizSubcategory).questionPoolSize) {
+      const randomQuestions = getRandomPythonQuestions(10);
+      quizCategory = { ...category, questions: randomQuestions } as QuizCategory;
+    }
+
+    setSelectedCategory(quizCategory);
     setCurrentQuestionIndex(0);
-    setSelectedAnswers(new Array(category.questions.length).fill(null));
+    setSelectedAnswers(new Array(quizCategory.questions.length).fill(null));
     setShowExplanation(false);
     setTimeLeft(QUESTION_TIME_LIMIT);
     setTimedOut(false);
@@ -1228,7 +1239,11 @@ const Quiz: React.FC = () => {
                   <p>{sub.description}</p>
                 </div>
                 <div className="subcategory-meta">
-                  <span className="question-count">{sub.questions.length} Questions</span>
+                  {sub.questionPoolSize ? (
+                    <span className="question-count">🎲 {sub.questionPoolSize} Pool • 10 per quiz</span>
+                  ) : (
+                    <span className="question-count">{sub.questions.length} Questions</span>
+                  )}
                   <span className="start-label">Start →</span>
                 </div>
               </div>
