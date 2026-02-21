@@ -131,9 +131,9 @@ const quizCategories: QuizCategory[] = [
         id: 'python',
         title: 'Python',
         icon: '🐍',
-        description: '50-question pool — Beginner, Intermediate & Advanced. 10 random questions each attempt!',
+        description: '500-question pool — 5 Chapters, 3 Difficulty Levels. 10 random questions each attempt!',
         color: '#3776ab',
-        questionPoolSize: 50,
+        questionPoolSize: 500,
         questions: [
           {
             id: 1,
