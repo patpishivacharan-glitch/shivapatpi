@@ -109,6 +109,17 @@ const Header: React.FC = () => {
             </li>
             <li>
               <Link 
+                to="/games" 
+                className={`nav-link ${isActive('/games')}`}
+                onClick={closeMobileMenu}
+                title="Games"
+              >
+                <span className="nav-icon">🎮</span>
+                <span className="nav-text">Games</span>
+              </Link>
+            </li>
+            <li>
+              <Link 
                 to="/contact" 
                 className={`nav-link ${isActive('/contact')}`}
                 onClick={closeMobileMenu}

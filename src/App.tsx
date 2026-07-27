@@ -10,6 +10,8 @@ import Friends from './pages/Friends';
 import Books from './pages/Books';
 import ContactUs from './pages/ContactUs';
 import Quiz from './pages/Quiz';
+import Games from './pages/Games';
+import SnakeGame from './pages/SnakeGame';
 import './styles/App.css';
 
 function App() {
@@ -28,6 +30,8 @@ function App() {
               <Route path="/books" element={<Books />} />
               <Route path="/contact" element={<ContactUs />} />
               <Route path="/quiz" element={<Quiz />} />
+              <Route path="/games" element={<Games />} />
+              <Route path="/games/snake" element={<SnakeGame />} />
             </Routes>
           </main>
         </div>
