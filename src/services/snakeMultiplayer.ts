@@ -1,61 +1,30 @@
-// Lightweight realtime multiplayer presence + score sync.
+// Realtime multiplayer presence + score sync backed by the server.
 //
-// Uses BroadcastChannel for instant cross-tab messaging and localStorage as the
-// shared source of truth so that presence survives reloads and works across every
-// tab/window on the same origin. Players that stop sending heartbeats are pruned,
-// giving an accurate realtime count of who is currently playing.
+// Uses Server-Sent Events (EventSource) to receive the live player list pushed
+// by the backend, and periodic heartbeats (fetch POST) to register presence and
+// score. Because the state lives on the shared server, every player sees all
+// other players in realtime across devices and browsers — no page refresh needed.
 
 export interface Player {
   id: string;
   name: string;
   score: number;
-  lastSeen: number;
+  lastSeen?: number;
 }
 
-const STORAGE_KEY = 'snake-multiplayer-players';
-const CHANNEL_NAME = 'snake-multiplayer';
 const HEARTBEAT_MS = 2000;
-const STALE_MS = 6000;
 
 type Listener = (players: Player[]) => void;
-
-function readStore(): Record<string, Player> {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    return raw ? (JSON.parse(raw) as Record<string, Player>) : {};
-  } catch {
-    return {};
-  }
-}
-
-function writeStore(players: Record<string, Player>): void {
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(players));
-  } catch {
-    /* ignore quota / serialization errors */
-  }
-}
-
-function prune(players: Record<string, Player>): Record<string, Player> {
-  const now = Date.now();
-  const alive: Record<string, Player> = {};
-  Object.values(players).forEach((p) => {
-    if (now - p.lastSeen <= STALE_MS) {
-      alive[p.id] = p;
-    }
-  });
-  return alive;
-}
 
 export class SnakeMultiplayer {
   private id: string;
   private name = '';
   private score = 0;
-  private channel: BroadcastChannel | null = null;
-  private listeners = new Set<Listener>();
+  private source: EventSource | null = null;
   private heartbeat: ReturnType<typeof setInterval> | null = null;
-  private storageHandler: ((e: StorageEvent) => void) | null = null;
   private beforeUnload: (() => void) | null = null;
+  private listeners = new Set<Listener>();
+  private cache: Player[] = [];
 
   constructor() {
     this.id = `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
@@ -69,67 +38,80 @@ export class SnakeMultiplayer {
     this.name = name.trim() || 'Anonymous';
     this.score = 0;
 
-    if (typeof BroadcastChannel !== 'undefined') {
-      this.channel = new BroadcastChannel(CHANNEL_NAME);
-      this.channel.onmessage = () => this.emit();
+    // Open the realtime stream of players.
+    try {
+      this.source = new EventSource('/api/snake/stream');
+      this.source.onmessage = (e: MessageEvent) => {
+        try {
+          const players = JSON.parse(e.data) as Player[];
+          this.cache = players;
+          this.emit();
+        } catch {
+          /* ignore malformed frame */
+        }
+      };
+      this.source.onerror = () => {
+        // EventSource auto-reconnects; also refresh via heartbeat.
+        this.sendHeartbeat();
+      };
+    } catch {
+      this.source = null;
     }
 
-    this.storageHandler = (e: StorageEvent) => {
-      if (e.key === STORAGE_KEY) this.emit();
-    };
-    window.addEventListener('storage', this.storageHandler);
-
-    this.beforeUnload = () => this.leave();
+    this.beforeUnload = () => this.sendLeaveBeacon();
     window.addEventListener('beforeunload', this.beforeUnload);
+    window.addEventListener('pagehide', this.beforeUnload);
 
-    this.writeSelf();
-    this.heartbeat = setInterval(() => this.writeSelf(), HEARTBEAT_MS);
-    this.emit();
+    this.sendHeartbeat();
+    this.heartbeat = setInterval(() => this.sendHeartbeat(), HEARTBEAT_MS);
   }
 
   setScore(score: number): void {
     this.score = score;
-    this.writeSelf();
+    this.sendHeartbeat();
   }
 
-  private writeSelf(): void {
-    const players = prune(readStore());
-    players[this.id] = {
-      id: this.id,
-      name: this.name,
-      score: this.score,
-      lastSeen: Date.now(),
-    };
-    writeStore(players);
-    this.notifyChannel();
-    this.emit();
+  private sendHeartbeat(): void {
+    fetch('/api/snake/heartbeat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id: this.id, name: this.name, score: this.score }),
+    })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((players: Player[] | null) => {
+        if (players) {
+          this.cache = players;
+          this.emit();
+        }
+      })
+      .catch(() => {
+        /* offline / server down — stream will resync on reconnect */
+      });
   }
 
-  private notifyChannel(): void {
-    if (this.channel) {
-      try {
-        this.channel.postMessage('update');
-      } catch {
-        /* channel closed */
-      }
+  private sendLeaveBeacon(): void {
+    try {
+      const blob = new Blob([JSON.stringify({ id: this.id })], {
+        type: 'application/json',
+      });
+      navigator.sendBeacon('/api/snake/leave', blob);
+    } catch {
+      /* ignore */
     }
   }
 
   subscribe(listener: Listener): () => void {
     this.listeners.add(listener);
-    listener(this.getPlayers());
+    listener(this.cache);
     return () => this.listeners.delete(listener);
   }
 
   getPlayers(): Player[] {
-    return Object.values(prune(readStore())).sort(
-      (a, b) => b.score - a.score || a.name.localeCompare(b.name)
-    );
+    return this.cache;
   }
 
   private emit(): void {
-    const players = this.getPlayers();
-    this.listeners.forEach((l) => l(players));
+    this.listeners.forEach((l) => l(this.cache));
   }
 
   leave(): void {
@@ -137,23 +119,24 @@ export class SnakeMultiplayer {
       clearInterval(this.heartbeat);
       this.heartbeat = null;
     }
-    const players = prune(readStore());
-    delete players[this.id];
-    writeStore(players);
-    this.notifyChannel();
-
-    if (this.storageHandler) {
-      window.removeEventListener('storage', this.storageHandler);
-      this.storageHandler = null;
+    if (this.source) {
+      this.source.close();
+      this.source = null;
     }
     if (this.beforeUnload) {
       window.removeEventListener('beforeunload', this.beforeUnload);
+      window.removeEventListener('pagehide', this.beforeUnload);
       this.beforeUnload = null;
     }
-    if (this.channel) {
-      this.channel.close();
-      this.channel = null;
-    }
+
+    // Notify the server we're gone (best-effort).
+    fetch('/api/snake/leave', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id: this.id }),
+    }).catch(() => this.sendLeaveBeacon());
+
     this.listeners.clear();
+    this.cache = [];
   }
 }
