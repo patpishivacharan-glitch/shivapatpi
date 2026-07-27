@@ -23,6 +23,23 @@
   text-decoration: underline;
 }
 
+.snake-history-btn {
+  position: absolute;
+  right: 0;
+  top: 0.2rem;
+  background: #f1f5f9;
+  border: 1px solid #e2e8f0;
+  color: #475569;
+  padding: 0.45rem 1rem;
+  border-radius: 999px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.snake-history-btn:hover {
+  background: #e2e8f0;
+}
+
 .snake-header h1 {
   font-size: 2.2rem;
   margin-bottom: 0.4rem;
@@ -282,4 +299,94 @@
   .snake-lobby {
     order: -1;
   }
+}
+
+/* History modal */
+.snake-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  z-index: 1000;
+}
+
+.snake-modal {
+  background: #fff;
+  border-radius: 16px;
+  width: 100%;
+  max-width: 620px;
+  max-height: 85vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+}
+
+.snake-modal-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.25rem 1.5rem;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.snake-modal-head h2 {
+  font-size: 1.3rem;
+  margin: 0;
+  color: #1e293b;
+}
+
+.snake-modal-close {
+  background: none;
+  border: none;
+  font-size: 1.2rem;
+  cursor: pointer;
+  color: #64748b;
+  line-height: 1;
+}
+
+.snake-history-empty {
+  padding: 2.5rem 1.5rem;
+  text-align: center;
+  color: #94a3b8;
+}
+
+.snake-history-table-wrap {
+  overflow-y: auto;
+  padding: 0 1.5rem;
+}
+
+.snake-history-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1rem 0;
+}
+
+.snake-history-table th,
+.snake-history-table td {
+  text-align: left;
+  padding: 0.6rem 0.75rem;
+  border-bottom: 1px solid #eef2f7;
+  font-size: 0.95rem;
+}
+
+.snake-history-table thead th {
+  position: sticky;
+  top: 0;
+  background: #f8fafc;
+  color: #475569;
+  font-weight: 700;
+}
+
+.snake-history-table tbody tr:hover {
+  background: #f8fafc;
+}
+
+.snake-modal-actions {
+  padding: 1rem 1.5rem;
+  border-top: 1px solid #e2e8f0;
+  display: flex;
+  justify-content: flex-end;
 }

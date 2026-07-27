@@ -1,6 +1,14 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { SnakeMultiplayer, Player } from '../services/snakeMultiplayer';
+import {
+  GameHistoryEntry,
+  getHistory,
+  addHistoryEntry,
+  clearHistory,
+  formatDate,
+  formatTime,
+} from '../services/gameHistory';
 import '../styles/SnakeGame.css';
 
 const GRID = 20; // 20 x 20 cells
@@ -29,6 +37,8 @@ const SnakeGame: React.FC = () => {
   const [score, setScore] = useState(0);
   const [gameOver, setGameOver] = useState(false);
   const [running, setRunning] = useState(false);
+  const [showHistory, setShowHistory] = useState(false);
+  const [history, setHistory] = useState<GameHistoryEntry[]>([]);
 
   const mpRef = useRef<SnakeMultiplayer | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -39,6 +49,7 @@ const SnakeGame: React.FC = () => {
   const pendingDirRef = useRef<Dir>('RIGHT');
   const foodRef = useRef<Point>(randomCell());
   const scoreRef = useRef(0);
+  const nameRef = useRef('');
 
   const draw = useCallback(() => {
     const canvas = canvasRef.current;
@@ -105,6 +116,8 @@ const SnakeGame: React.FC = () => {
     if (hitWall || hitSelf) {
       setRunning(false);
       setGameOver(true);
+      addHistoryEntry(nameRef.current, scoreRef.current);
+      setHistory(getHistory());
       return;
     }
 
@@ -161,8 +174,20 @@ const SnakeGame: React.FC = () => {
     mp.subscribe(setPlayers);
     mp.join(name.trim());
     mpRef.current = mp;
+    nameRef.current = name.trim();
+    setHistory(getHistory());
     setJoined(true);
     resetGame();
+  };
+
+  const openHistory = () => {
+    setHistory(getHistory());
+    setShowHistory(true);
+  };
+
+  const handleClearHistory = () => {
+    clearHistory();
+    setHistory([]);
   };
 
   const handleLeave = useCallback(() => {
@@ -207,6 +232,9 @@ const SnakeGame: React.FC = () => {
         <p className="snake-subtitle">
           Enter your name to join the arena. See everyone playing live!
         </p>
+        <button className="snake-history-btn" onClick={openHistory}>
+          📜 History
+        </button>
       </div>
 
       {!joined ? (
@@ -284,6 +312,60 @@ const SnakeGame: React.FC = () => {
               {players.length === 0 && <li className="empty">No players yet…</li>}
             </ul>
           </aside>
+        </div>
+      )}
+
+      {showHistory && (
+        <div className="snake-modal-overlay" onClick={() => setShowHistory(false)}>
+          <div className="snake-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="snake-modal-head">
+              <h2>📜 Game History</h2>
+              <button
+                className="snake-modal-close"
+                onClick={() => setShowHistory(false)}
+                aria-label="Close"
+              >
+                ✕
+              </button>
+            </div>
+
+            {history.length === 0 ? (
+              <p className="snake-history-empty">No games played yet.</p>
+            ) : (
+              <div className="snake-history-table-wrap">
+                <table className="snake-history-table">
+                  <thead>
+                    <tr>
+                      <th>#</th>
+                      <th>Player</th>
+                      <th>Score</th>
+                      <th>Date</th>
+                      <th>Time</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {history.map((h, i) => (
+                      <tr key={h.id}>
+                        <td>{i + 1}</td>
+                        <td>{h.name}</td>
+                        <td>{h.score}</td>
+                        <td>{formatDate(h.playedAt)}</td>
+                        <td>{formatTime(h.playedAt)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+
+            {history.length > 0 && (
+              <div className="snake-modal-actions">
+                <button className="snake-secondary" onClick={handleClearHistory}>
+                  Clear History
+                </button>
+              </div>
+            )}
+          </div>
         </div>
       )}
     </div>
