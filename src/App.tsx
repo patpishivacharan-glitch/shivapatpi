@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Navigate, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
 import Header from './components/Header';
 import HomePage from './pages/HomePage';
@@ -8,7 +8,6 @@ import Technical from './pages/Technical';
 import Spiritual from './pages/Spiritual';
 import Friends from './pages/Friends';
 import Books from './pages/Books';
-import ContactUs from './pages/ContactUs';
 import Quiz from './pages/Quiz';
 import Games from './pages/Games';
 import SnakeGame from './pages/SnakeGame';
@@ -29,7 +28,7 @@ function App() {
               <Route path="/spiritual" element={<Spiritual />} />
               <Route path="/friends" element={<Friends />} />
               <Route path="/books" element={<Books />} />
-              <Route path="/contact" element={<ContactUs />} />
+              <Route path="/contact" element={<Navigate to="/about#contact" replace />} />
               <Route path="/quiz" element={<Quiz />} />
               <Route path="/games" element={<Games />} />
               <Route path="/games/snake" element={<SnakeGame />} />

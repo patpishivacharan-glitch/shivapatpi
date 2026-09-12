@@ -4,6 +4,10 @@
   min-height: calc(100vh - 80px);
 }
 
+.contact-page.contact-embedded {
+  min-height: auto;
+}
+
 .contact-hero {
   text-align: center;
   margin-bottom: 4rem;

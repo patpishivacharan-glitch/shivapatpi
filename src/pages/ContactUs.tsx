@@ -2,7 +2,11 @@ import React, { useState } from "react";
 import emailjs from '@emailjs/browser';
 import "../styles/ContactUs.css";
 
-const ContactUs: React.FC = () => {
+interface ContactUsProps {
+  embedded?: boolean;
+}
+
+const ContactUs: React.FC<ContactUsProps> = ({ embedded = false }) => {
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -140,7 +144,7 @@ const ContactUs: React.FC = () => {
   ];
 
   return (
-    <div className="contact-page">
+    <div id="contact" className={`contact-page ${embedded ? 'contact-embedded' : ''}`}>
       <div className="container">
         <section className="contact-hero">
           <h1>Let's Connect</h1>

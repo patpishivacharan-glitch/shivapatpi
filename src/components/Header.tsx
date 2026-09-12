@@ -46,10 +46,10 @@ const Header: React.FC = () => {
                 to="/about" 
                 className={`nav-link ${isActive('/about')}`}
                 onClick={closeMobileMenu}
-                title="About Me"
+                title="About Me and Contact"
               >
                 <span className="nav-icon">👤</span>
-                <span className="nav-text">About Me</span>
+                <span className="nav-text">AboutMe</span>
               </Link>
             </li>
             <li>
@@ -127,17 +127,6 @@ const Header: React.FC = () => {
               >
                 <span className="nav-icon">क</span>
                 <span className="nav-text">HindiClasses</span>
-              </Link>
-            </li>
-            <li>
-              <Link
-                to="/contact" 
-                className={`nav-link ${isActive('/contact')}`}
-                onClick={closeMobileMenu}
-                title="Contact Us"
-              >
-                <span className="nav-icon">📧</span>
-                <span className="nav-text">Contact</span>
               </Link>
             </li>
           </ul>
