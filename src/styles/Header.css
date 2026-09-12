@@ -53,13 +53,13 @@
   list-style: none;
   margin: 0;
   padding: 0;
-  gap: 2rem;
+  gap: 1rem;
   align-items: center;
 }
 
 .nav-link {
   position: relative;
-  padding: 0.5rem 1rem;
+  padding: 0.5rem 0.7rem;
   font-weight: 500;
   color: var(--gray-700);
   text-decoration: none;

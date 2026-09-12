@@ -1,0 +1,54 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function isAdmin() {
+      return signedIn() && (
+        request.auth.token.admin == true
+        || request.auth.token.email == 'patpi.shivacharan@gmail.com'
+      );
+    }
+
+    function email() {
+      return request.auth.token.email;
+    }
+
+    function isStudentParent(studentId) {
+      return signedIn()
+        && get(/databases/$(database)/documents/hindiStudents/$(studentId)).data.parentEmail == email();
+    }
+
+    match /hindiStudents/{studentId} {
+      allow read: if isAdmin() || (signedIn() && resource.data.parentEmail == email());
+      allow create, update, delete: if isAdmin();
+    }
+
+    match /hindiAttendance/{recordId} {
+      allow read: if isAdmin() || isStudentParent(resource.data.studentId);
+      allow write: if isAdmin();
+    }
+
+    match /hindiProgress/{entryId} {
+      allow read: if isAdmin() || isStudentParent(resource.data.studentId);
+      allow write: if isAdmin();
+    }
+
+    match /hindiHomework/{assignmentId} {
+      allow read: if signedIn();
+      allow write: if isAdmin();
+    }
+
+    match /hindiSubmissions/{submissionId} {
+      allow read: if isAdmin() || isStudentParent(resource.data.studentId);
+      allow create, update: if isAdmin() || (
+        isStudentParent(request.resource.data.studentId)
+        && request.resource.data.parentEmail == email()
+      );
+      allow delete: if isAdmin();
+    }
+  }
+}

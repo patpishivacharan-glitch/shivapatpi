@@ -119,7 +119,18 @@ const Header: React.FC = () => {
               </Link>
             </li>
             <li>
-              <Link 
+              <Link
+                to="/hindi-classes"
+                className={`nav-link ${isActive('/hindi-classes')}`}
+                onClick={closeMobileMenu}
+                title="Hindi Classes"
+              >
+                <span className="nav-icon">क</span>
+                <span className="nav-text">HindiClasses</span>
+              </Link>
+            </li>
+            <li>
+              <Link
                 to="/contact" 
                 className={`nav-link ${isActive('/contact')}`}
                 onClick={closeMobileMenu}

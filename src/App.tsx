@@ -12,6 +12,7 @@ import ContactUs from './pages/ContactUs';
 import Quiz from './pages/Quiz';
 import Games from './pages/Games';
 import SnakeGame from './pages/SnakeGame';
+import HindiClasses from './pages/HindiClasses';
 import './styles/App.css';
 
 function App() {
@@ -32,6 +33,7 @@ function App() {
               <Route path="/quiz" element={<Quiz />} />
               <Route path="/games" element={<Games />} />
               <Route path="/games/snake" element={<SnakeGame />} />
+              <Route path="/hindi-classes" element={<HindiClasses />} />
             </Routes>
           </main>
         </div>

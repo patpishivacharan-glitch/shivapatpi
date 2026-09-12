@@ -14,6 +14,7 @@ A professional React.js + TypeScript website showcasing personal brand, technica
   - Spiritual: Daily practices, philosophy, and insights
   - Friends: Interactive grid layout showcasing connections
   - ContactUs: Contact form and social media links
+  - HindiClasses: Role-based class portal for attendance, progress, and homework
 
 ## Tech Stack
 
@@ -133,6 +134,17 @@ The built application can be deployed to:
 - GitHub Pages
 - AWS S3 + CloudFront
 - Any static hosting service
+
+### Hindi Classes setup
+
+Hindi Classes uses Firebase Authentication, Cloud Firestore, and Firebase Storage. Copy the
+Firebase values from `.env.example` into the deployment environment, enable Google and/or
+Microsoft authentication, then deploy `firestore.rules` and `storage.rules`.
+
+The designated site administrator (`patpi.shivacharan@gmail.com`) has admin access; additional
+admins can use an `admin: true` Firebase Authentication custom claim. Parents are linked to
+students by the email address entered by the admin on the Students tab and must sign in using
+that same email address.
 
 ## Browser Support
 
