@@ -129,6 +129,17 @@ const Header: React.FC = () => {
                 <span className="nav-text">HindiClasses</span>
               </Link>
             </li>
+            <li>
+              <Link
+                to="/students"
+                className={`nav-link ${isActive('/students')}`}
+                onClick={closeMobileMenu}
+                title="Student Management"
+              >
+                <span className="nav-icon">📚</span>
+                <span className="nav-text">Students</span>
+              </Link>
+            </li>
           </ul>
         </nav>
         
