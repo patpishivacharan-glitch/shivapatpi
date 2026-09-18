@@ -46,13 +46,16 @@ export const StudentsGrid: React.FC = () => {
       const attendanceResponse = await apiClient.getStudentAttendance(student.studentId);
       const notesResponse = await apiClient.getStudentNotes(student.studentId);
 
-      const attendanceData = Array.isArray(attendanceResponse.data)
-        ? attendanceResponse.data
+      // Ensure data is always an array
+      const attendanceData: AttendanceRecord[] = Array.isArray(attendanceResponse.data)
+        ? (attendanceResponse.data as AttendanceRecord[])
         : [];
-      const notesData = Array.isArray(notesResponse.data) ? notesResponse.data : [];
+      const notesData: Note[] = Array.isArray(notesResponse.data)
+        ? (notesResponse.data as Note[])
+        : [];
 
       // Calculate attendance percentage
-      const present = attendanceData.filter((a) => a.status === 'Present').length;
+      const present = attendanceData.filter((a: AttendanceRecord) => a.status === 'Present').length;
       const attendancePercentage =
         attendanceData.length > 0 ? Math.round((present / attendanceData.length) * 100) : 0;
 
