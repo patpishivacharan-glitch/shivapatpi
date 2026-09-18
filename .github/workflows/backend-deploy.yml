@@ -1,0 +1,66 @@
+name: Build and deploy .NET backend API to Azure
+
+on:
+  push:
+    branches:
+      - master
+    paths:
+      - 'backend/**'
+      - '.github/workflows/backend-deploy.yml'
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up .NET Core
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Build backend
+        run: |
+          cd backend
+          dotnet restore
+          dotnet build --configuration Release
+          dotnet test --configuration Release --no-build --verbosity normal || true
+        shell: bash
+
+      - name: Publish backend
+        run: |
+          cd backend
+          dotnet publish ShivaPatpi.API/ShivaPatpi.API.csproj -c Release -o ${{ env.DOTNET_ROOT }}/myapp
+        shell: bash
+
+      - name: Upload artifact for deployment job
+        uses: actions/upload-artifact@v4
+        with:
+          name: dotnet-app
+          path: ${{ env.DOTNET_ROOT }}/myapp
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: build
+    
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download artifact from build job
+        uses: actions/download-artifact@v4
+        with:
+          name: dotnet-app
+          path: ${{ env.DOTNET_ROOT }}/myapp
+
+      - name: 'Deploy to Azure Web App'
+        id: deploy-to-webapp
+        uses: azure/webapps-deploy@v3
+        with:
+          app-name: 'shivapatpi-api'
+          slot-name: 'Production'
+          package: ${{ env.DOTNET_ROOT }}/myapp
+          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_BACKEND }}

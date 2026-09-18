@@ -1,18 +1,5 @@
-import {
-  addDoc,
-  collection,
-  deleteDoc,
-  doc,
-  onSnapshot,
-  query,
-  serverTimestamp,
-  setDoc,
-  Unsubscribe,
-  where,
-} from 'firebase/firestore';
-import { getDownloadURL, ref, uploadBytes } from 'firebase/storage';
 import { User } from 'firebase/auth';
-import { getFirebaseDb, getFirebaseStorage } from '../firebase';
+import { getFirebaseAuth } from '../firebase';
 
 export type AttendanceStatus = 'present' | 'absent' | 'late' | 'excused';
 export type ProgressLevel = 'Beginning' | 'Developing' | 'On track' | 'Excellent';
@@ -63,72 +50,82 @@ export interface HomeworkSubmission {
   submittedAt?: unknown;
 }
 
-type StudentRecord = AttendanceRecord | ProgressEntry | HomeworkSubmission;
-
-function mapDocuments<T extends { id: string }>(snapshot: any): T[] {
-  return snapshot.docs.map((item: any) => ({ id: item.id, ...item.data() } as T));
+export interface HindiClassData {
+  students: HindiStudent[];
+  attendance: AttendanceRecord[];
+  progress: ProgressEntry[];
+  homework: HomeworkAssignment[];
+  submissions: HomeworkSubmission[];
+  isAdmin: boolean;
 }
 
-export function subscribeToStudents(
-  parentEmail: string | null,
-  onData: (students: HindiStudent[]) => void,
-  onError: (error: Error) => void
-): Unsubscribe {
-  const students = collection(getFirebaseDb(), 'hindiStudents');
-  const source = parentEmail
-    ? query(students, where('parentEmail', '==', parentEmail.toLowerCase()))
-    : students;
+export type HindiStudentImport = Pick<
+  HindiStudent,
+  'name' | 'grade' | 'parentName' | 'parentEmail' | 'parentPhone'
+>;
 
-  return onSnapshot(
-    source,
-    (snapshot) => {
-      const rows = mapDocuments<HindiStudent>(snapshot);
-      rows.sort((a, b) => a.name.localeCompare(b.name));
-      onData(rows);
-    },
-    onError
-  );
-}
+const DATA_CHANGED_EVENT = 'hindi-classes-data-changed';
+const REFRESH_INTERVAL_MS = 10000;
 
-export function subscribeToHomework(
-  onData: (assignments: HomeworkAssignment[]) => void,
-  onError: (error: Error) => void
-): Unsubscribe {
-  return onSnapshot(
-    collection(getFirebaseDb(), 'hindiHomework'),
-    (snapshot) => {
-      const rows = mapDocuments<HomeworkAssignment>(snapshot);
-      rows.sort((a, b) => b.dueDate.localeCompare(a.dueDate));
-      onData(rows);
-    },
-    onError
-  );
-}
+async function apiRequest<T>(path: string, options: RequestInit = {}): Promise<T> {
+  const user = getFirebaseAuth().currentUser;
+  if (!user) throw new Error('Please sign in again.');
 
-export function subscribeToStudentRecords<T extends StudentRecord>(
-  collectionName: 'hindiAttendance' | 'hindiProgress' | 'hindiSubmissions',
-  studentIds: string[],
-  onData: (records: T[]) => void,
-  onError: (error: Error) => void
-): Unsubscribe {
-  if (studentIds.length === 0) {
-    onData([]);
-    return () => undefined;
+  const token = await user.getIdToken();
+  const headers = new Headers(options.headers);
+  headers.set('Authorization', `Bearer ${token}`);
+  if (options.body && !(options.body instanceof FormData)) {
+    headers.set('Content-Type', 'application/json');
   }
 
-  const recordsByStudent = new Map<string, T[]>();
-  const unsubscribes = studentIds.map((studentId) =>
-    onSnapshot(
-      query(collection(getFirebaseDb(), collectionName), where('studentId', '==', studentId)),
-      (snapshot) => {
-        recordsByStudent.set(studentId, mapDocuments<T>(snapshot));
-        onData(Array.from(recordsByStudent.values()).flat());
-      },
-      onError
-    )
-  );
+  const response = await fetch(`/api/hindi${path}`, { ...options, headers });
+  if (!response.ok) {
+    const body = await response.json().catch(() => null);
+    const error = new Error(body?.error || `Request failed with status ${response.status}.`) as Error & {
+      code?: string;
+    };
+    if (response.status === 401) error.code = 'unauthenticated';
+    if (response.status === 403) error.code = 'permission-denied';
+    throw error;
+  }
+  if (response.status === 204) return undefined as T;
+  return response.json() as Promise<T>;
+}
 
-  return () => unsubscribes.forEach((unsubscribe) => unsubscribe());
+function notifyDataChanged() {
+  window.dispatchEvent(new Event(DATA_CHANGED_EVENT));
+}
+
+export function subscribeToHindiClassData(
+  role: 'admin' | 'parent',
+  onData: (data: HindiClassData) => void,
+  onError: (error: Error) => void
+): () => void {
+  let active = true;
+  let loading = false;
+
+  const load = async () => {
+    if (!active || loading) return;
+    loading = true;
+    try {
+      const data = await apiRequest<HindiClassData>(`/data?role=${role}`);
+      if (active) onData(data);
+    } catch (error) {
+      if (active) onError(error as Error);
+    } finally {
+      loading = false;
+    }
+  };
+
+  const interval = window.setInterval(load, REFRESH_INTERVAL_MS);
+  window.addEventListener(DATA_CHANGED_EVENT, load);
+  load();
+
+  return () => {
+    active = false;
+    window.clearInterval(interval);
+    window.removeEventListener(DATA_CHANGED_EVENT, load);
+  };
 }
 
 export async function addStudent(
@@ -138,41 +135,24 @@ export async function addStudent(
   parentEmail: string,
   parentPhone: string
 ): Promise<void> {
-  await addDoc(collection(getFirebaseDb(), 'hindiStudents'), {
-    name: name.trim(),
-    grade: grade.trim(),
-    parentName: parentName.trim(),
-    parentEmail: parentEmail.trim().toLowerCase(),
-    parentPhone: parentPhone.trim(),
-    active: true,
-    createdAt: serverTimestamp(),
+  await apiRequest('/students', {
+    method: 'POST',
+    body: JSON.stringify({ name, grade, parentName, parentEmail, parentPhone }),
   });
+  notifyDataChanged();
 }
 
-export type HindiStudentImport = Pick<
-  HindiStudent,
-  'name' | 'grade' | 'parentName' | 'parentEmail' | 'parentPhone'
->;
-
 export async function importStudents(students: HindiStudentImport[]): Promise<void> {
-  await Promise.all(
-    students.map((student) => {
-      const importId = `${student.name}_${student.parentEmail}`
-        .toLowerCase()
-        .replace(/[^a-z0-9]+/g, '-')
-        .replace(/^-|-$/g, '');
-      return setDoc(doc(getFirebaseDb(), 'hindiStudents', `import-${importId}`), {
-        ...student,
-        parentEmail: student.parentEmail.trim().toLowerCase(),
-        active: true,
-        createdAt: serverTimestamp(),
-      });
-    })
-  );
+  await apiRequest('/students/import', {
+    method: 'POST',
+    body: JSON.stringify({ students }),
+  });
+  notifyDataChanged();
 }
 
 export async function removeStudent(studentId: string): Promise<void> {
-  await deleteDoc(doc(getFirebaseDb(), 'hindiStudents', studentId));
+  await apiRequest(`/students/${encodeURIComponent(studentId)}`, { method: 'DELETE' });
+  notifyDataChanged();
 }
 
 export async function saveAttendance(
@@ -181,13 +161,14 @@ export async function saveAttendance(
   status: AttendanceStatus,
   note: string
 ): Promise<void> {
-  await setDoc(doc(getFirebaseDb(), 'hindiAttendance', `${studentId}_${classDate}`), {
-    studentId,
-    classDate,
-    status,
-    note: note.trim(),
-    updatedAt: serverTimestamp(),
-  });
+  await apiRequest(
+    `/attendance/${encodeURIComponent(studentId)}/${encodeURIComponent(classDate)}`,
+    {
+      method: 'PUT',
+      body: JSON.stringify({ status, note }),
+    }
+  );
+  notifyDataChanged();
 }
 
 export async function addProgress(
@@ -195,12 +176,11 @@ export async function addProgress(
   level: ProgressLevel,
   comment: string
 ): Promise<void> {
-  await addDoc(collection(getFirebaseDb(), 'hindiProgress'), {
-    studentId,
-    level,
-    comment: comment.trim(),
-    createdAt: serverTimestamp(),
+  await apiRequest('/progress', {
+    method: 'POST',
+    body: JSON.stringify({ studentId, level, comment }),
   });
+  notifyDataChanged();
 }
 
 export async function addHomework(
@@ -208,44 +188,25 @@ export async function addHomework(
   instructions: string,
   dueDate: string
 ): Promise<void> {
-  await addDoc(collection(getFirebaseDb(), 'hindiHomework'), {
-    title: title.trim(),
-    instructions: instructions.trim(),
-    dueDate,
-    createdAt: serverTimestamp(),
+  await apiRequest('/homework', {
+    method: 'POST',
+    body: JSON.stringify({ title, instructions, dueDate }),
   });
+  notifyDataChanged();
 }
 
 export async function uploadHomework(
-  user: User,
+  _user: User,
   student: HindiStudent,
   assignment: HomeworkAssignment,
   file: File
 ): Promise<void> {
-  const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
-  const submissionId = `${assignment.id}_${student.id}`;
-  const storagePath = `hindi-homework/${student.id}/${assignment.id}/${user.uid}-${safeName}`;
-  const storageRef = ref(getFirebaseStorage(), storagePath);
-
-  await uploadBytes(storageRef, file, {
-    contentType: file.type || 'application/octet-stream',
-    customMetadata: {
-      studentId: student.id,
-      assignmentId: assignment.id,
-      parentEmail: student.parentEmail,
-    },
-  });
-  const fileUrl = await getDownloadURL(storageRef);
-
-  await setDoc(doc(getFirebaseDb(), 'hindiSubmissions', submissionId), {
-    assignmentId: assignment.id,
-    studentId: student.id,
-    parentEmail: student.parentEmail,
-    fileName: file.name,
-    fileUrl,
-    storagePath,
-    submittedAt: serverTimestamp(),
-  });
+  const body = new FormData();
+  body.append('studentId', student.id);
+  body.append('assignmentId', assignment.id);
+  body.append('file', file);
+  await apiRequest('/submissions', { method: 'POST', body });
+  notifyDataChanged();
 }
 
 export function formatFirebaseDate(value: any): string {

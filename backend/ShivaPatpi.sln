@@ -1,0 +1,34 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ShivaPatpi.API", "ShivaPatpi.API\ShivaPatpi.API.csproj", "{04C90393-6A78-4C1F-B069-7991FD9AC2EF}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ShivaPatpi.Data", "ShivaPatpi.Data\ShivaPatpi.Data.csproj", "{8DBCF542-E7BC-44AD-91DB-F9D2AEEA041F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ShivaPatpi.Services", "ShivaPatpi.Services\ShivaPatpi.Services.csproj", "{D6C37808-16C2-4A83-AFBD-DEEAAE302263}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{04C90393-6A78-4C1F-B069-7991FD9AC2EF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{04C90393-6A78-4C1F-B069-7991FD9AC2EF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{04C90393-6A78-4C1F-B069-7991FD9AC2EF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{04C90393-6A78-4C1F-B069-7991FD9AC2EF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8DBCF542-E7BC-44AD-91DB-F9D2AEEA041F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8DBCF542-E7BC-44AD-91DB-F9D2AEEA041F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8DBCF542-E7BC-44AD-91DB-F9D2AEEA041F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8DBCF542-E7BC-44AD-91DB-F9D2AEEA041F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D6C37808-16C2-4A83-AFBD-DEEAAE302263}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D6C37808-16C2-4A83-AFBD-DEEAAE302263}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D6C37808-16C2-4A83-AFBD-DEEAAE302263}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D6C37808-16C2-4A83-AFBD-DEEAAE302263}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal

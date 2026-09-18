@@ -1,4 +1,4 @@
-import React, { FormEvent, useEffect, useMemo, useState } from 'react';
+import React, { FormEvent, useEffect, useState } from 'react';
 import { getIdTokenResult } from 'firebase/auth';
 import { useAuth } from '../contexts/AuthContext';
 import {
@@ -16,9 +16,7 @@ import {
   ProgressLevel,
   removeStudent,
   saveAttendance,
-  subscribeToHomework,
-  subscribeToStudentRecords,
-  subscribeToStudents,
+  subscribeToHindiClassData,
   uploadHomework,
 } from '../services/hindiClasses';
 import '../styles/HindiClasses.css';
@@ -75,48 +73,18 @@ const HindiClasses: React.FC = () => {
   useEffect(() => {
     if (!user || !role || (role === 'admin' && !isAdmin)) return;
     setError('');
-    const parentEmail = role === 'parent' ? (user.email || '').toLowerCase() : null;
-    return subscribeToStudents(parentEmail, setStudents, (loadError) =>
-      setError(getErrorMessage(loadError))
+    return subscribeToHindiClassData(
+      role,
+      (data) => {
+        setStudents(data.students);
+        setAttendance(data.attendance);
+        setProgress(data.progress);
+        setHomework(data.homework);
+        setSubmissions(data.submissions);
+      },
+      (loadError) => setError(getErrorMessage(loadError))
     );
   }, [user, role, isAdmin]);
-
-  const studentIds = useMemo(() => students.map((student) => student.id), [students]);
-  const studentIdsKey = studentIds.join(',');
-
-  useEffect(() => {
-    if (!user || !role || (role === 'admin' && !isAdmin)) return;
-    return subscribeToHomework(setHomework, (loadError) => setError(getErrorMessage(loadError)));
-  }, [user, role, isAdmin]);
-
-  useEffect(() => {
-    if (!user || !role || (role === 'admin' && !isAdmin)) return;
-    const ids = studentIdsKey ? studentIdsKey.split(',') : [];
-    const reportError = (loadError: Error) => setError(getErrorMessage(loadError));
-    const unsubAttendance = subscribeToStudentRecords<AttendanceRecord>(
-      'hindiAttendance',
-      ids,
-      setAttendance,
-      reportError
-    );
-    const unsubProgress = subscribeToStudentRecords<ProgressEntry>(
-      'hindiProgress',
-      ids,
-      setProgress,
-      reportError
-    );
-    const unsubSubmissions = subscribeToStudentRecords<HomeworkSubmission>(
-      'hindiSubmissions',
-      ids,
-      setSubmissions,
-      reportError
-    );
-    return () => {
-      unsubAttendance();
-      unsubProgress();
-      unsubSubmissions();
-    };
-  }, [user, role, isAdmin, studentIdsKey]);
 
   const signIn = async (provider: 'google' | 'microsoft') => {
     setError('');

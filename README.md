@@ -137,14 +137,29 @@ The built application can be deployed to:
 
 ### Hindi Classes setup
 
-Hindi Classes uses Firebase Authentication, Cloud Firestore, and Firebase Storage. Copy the
-Firebase values from `.env.example` into the deployment environment, enable Google and/or
-Microsoft authentication, then deploy `firestore.rules` and `storage.rules`.
+Hindi Classes uses Firebase Authentication in the browser and an authenticated Express API for
+all Cloud Firestore and Firebase Storage access. Copy the browser and server Firebase values from
+`.env.example` into the deployment environment, then enable Google and/or Microsoft
+authentication. The API verifies every Firebase ID token and enforces parent/admin authorization
+before accessing student data.
 
 The designated site administrator (`patpi.shivacharan@gmail.com`) has admin access; additional
 admins can use an `admin: true` Firebase Authentication custom claim. Parents are linked to
 students by the email address entered by the admin on the Students tab and must sign in using
 that same email address.
+
+For local development, download a Firebase service-account key from **Firebase Console → Project
+settings → Service accounts → Generate new private key** and set the complete JSON as
+`FIREBASE_SERVICE_ACCOUNT_JSON` in `.env`. For Azure, add the same value as an App Service
+environment variable. Never expose or commit the service-account JSON.
+
+### Hindi Classes API
+
+The Express server exposes authenticated endpoints under `/api/hindi`:
+
+- `GET /api/hindi/data` returns the signed-in parent's students or the complete admin dashboard.
+- Admin endpoints manage students, attendance, progress, and homework.
+- `POST /api/hindi/submissions` validates and uploads homework files to Firebase Storage.
 
 ## Browser Support
 

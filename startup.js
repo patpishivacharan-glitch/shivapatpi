@@ -1,8 +1,11 @@
+require('dotenv').config();
 const express = require('express');
 const path = require('path');
+const { createHindiClassesRouter } = require('./server/hindiClassesApi');
 const app = express();
 
 app.use(express.json());
+app.use('/api/hindi', createHindiClassesRouter());
 
 // ---------------------------------------------------------------------------
 // Realtime multiplayer presence for the Snake game.
